@@ -40,16 +40,38 @@ module Scm::Adapters
 			# because Ohloh ignores merge diffs anyway.
 
 			previous = nil
-			Scm::Parsers::GitStyledParser.parse(log(opts)) do |e|
-				yield e unless previous && previous.token == e.token
-				previous = e
-			end
+      open_log_file(opts) do |io|
+			  Scm::Parsers::GitStyledParser.parse(io) do |e|
+				  yield fixup_null_merge(e) unless previous && previous.token == e.token
+				  previous = e
+			  end
+      end
 		end
 
 		# Returns a single commit, including its diffs
 		def verbose_commit(token)
-			Scm::Parsers::GitStyledParser.parse(run("cd '#{url}' && #{Scm::Parsers::GitStyledParser.whatchanged} #{token}")).first
+			c = Scm::Parsers::GitStyledParser.parse(run("cd '#{url}' && #{Scm::Parsers::GitStyledParser.whatchanged} #{token}")).first
+      fixup_null_merge(c)
 		end
+
+    # For a merge commit, we ask `git whatchanged` to output the changes relative to each parent.
+    # It is possible, through developer hackery, to create a merge commit which does not change the tree.
+    # When this happens, `git whatchanged` will suppress its output relative to the first parent,
+    # and jump immediately to the second (branch) parent. Our code mistakenly interprets this output
+    # as the missing changes relative to the first parent.
+    #
+    # To avoid this calamity, we must compare the tree hash of this commit with its first parent's.
+    # If they are the same, then the diff should be empty, regardless of what `git whatchanged` says.
+    #
+    # Yes, this is a convoluted, time-wasting hack to address a very rare circumstance. Ultimatley
+    # we should stop parsing `git whatchanged` to extract commit data.
+    def fixup_null_merge(c)
+      first_parent_token = parent_tokens(c).first
+      if first_parent_token && get_commit_tree(first_parent_token) == get_commit_tree(c.token)
+        c.diffs = []
+      end
+      c
+    end
 
 		# Retrieves the git log in the format expected by GitStyledParser.
 		# We get the log forward chronological order (oldest first)
@@ -64,6 +86,30 @@ module Scm::Adapters
 				''
 			end
 		end
+
+
+		# Same as log() method above, except that it writes the log to 
+    # a file.
+		def open_log_file(opts={})
+			if has_branch?
+				if opts[:after] && opts[:after]==self.head_token
+					'' # Nothing new.
+				else
+          begin
+					  run "#{rev_list_command(opts)} | xargs -n 1 #{Scm::Parsers::GitStyledParser.whatchanged} > #{log_filename}"
+            File.open(log_filename, 'r') { |io| yield io } 
+          ensure
+            File.delete(log_filename) if FileTest.exist?(log_filename)
+          end
+				end
+			else
+				''
+			end
+		end
+
+    def log_filename
+      File.join('/tmp', (self.url).gsub(/\W/,'') + '.log')
+    end 
 
 		def rev_list_command(opts={})
       up_to = opts[:up_to] || branch_name

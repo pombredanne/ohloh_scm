@@ -7,12 +7,21 @@ module Scm::Adapters
 				assert !SvnAdapter.new(:username => username).validate_username
 			end
 		end
+		
+		def test_for_blank_svn_urls
+			svn = SvnAdapter.new(:url =>"")
+			assert_nil svn.path_to_file_url(svn.url)
+		end
+
+		def test_for_non_blank_svn_urls
+			svn = SvnAdapter.new(:url =>"/home/rapbhan")
+			assert_equal 'file:///home/rapbhan', svn.path_to_file_url(svn.url)
+		end
 
 		def test_rejected_urls
 			[	nil, "", "foo", "http:/", "http:://", "http://",
 			"sourceforge.net/svn/project/trunk", # missing a protocol prefix
 			"http://robin@svn.sourceforge.net/", # must not include a username with the url
-			"http://svn.sourceforge.net/asdf/asdf/ malicious code", # no spaces allowed
 			"/home/robin/cvs", # local file paths not allowed
 			"git://kernel.org/whatever/linux.git", # git protocol is not allowed
 			":pserver:anonymous:@juicereceiver.cvs.sourceforge.net:/cvsroot/juicereceiver", # pserver is just wrong
@@ -38,7 +47,8 @@ module Scm::Adapters
 			"http://svn.gnome.org/svn/gtk+/trunk", # + character OK
 			"http://svn.gnome.org", # no path, no trailing /, just a domain name is OK
 			"http://brlcad.svn.sourceforge.net/svnroot/brlcad/rt^3/trunk", # a caret ^ is allowed
-			"http://www.thus.ch/~patrick/svn/pvalsecc" # ~ is allowed
+			"http://www.thus.ch/~patrick/svn/pvalsecc", # ~ is allowed
+			"http://franklinmath.googlecode.com/svn/trunk/Franklin Math", # space is allowed in path
 			].each do |url|
 				# Accepted for both internal and public use
 				[true, false].each do |p|
