@@ -8,16 +8,7 @@ module Scm::Adapters
 
 		# Return the list of commit tokens following +after+.
 		def commit_tokens(opts={})
-			tokens = run("#{rev_list_command(opts)} | grep -E -e '^( *)revision-id: ' | cut -f2- -d':' | cut -c 2-").split("\n")
-
-			# Bzr returns everything after *and including* after.
-			# We want to exclude it.
-			after = opts[:after]
-			if tokens.any? && tokens.first == after
-				tokens[1..-1]
-			else
-				tokens
-			end
+      commits(opts).map(&:token)
 		end
 
 		# Returns a list of shallow commits (i.e., the diffs are not populated).
@@ -28,19 +19,19 @@ module Scm::Adapters
 		def commits(opts={})
 			after = opts[:after]
 			log = run("#{rev_list_command(opts)} | cat")
-			a = Scm::Parsers::BzrParser.parse(log)
+			a = Scm::Parsers::BzrXmlParser.parse(log)
 
-			if a.any? && a.first.token == after
-				a[1..-1]
-			else
-				a
-			end
+      if after && i = a.index { |commit| commit.token == after }
+        a[(i+1)..-1]
+      else
+        a
+      end
 		end
 
 		# Returns a single commit, including its diffs
 		def verbose_commit(token)
-			log = run("cd '#{self.url}' && bzr log --long --show-id -v --limit 1 -c #{to_rev_param(token)}")
-			Scm::Parsers::BzrParser.parse(log).first
+			log = run("cd '#{self.url}' && bzr xmllog --show-id -v --limit 1 -c #{to_rev_param(token)}")
+			Scm::Parsers::BzrXmlParser.parse(log).first
 		end
 
 		# Yields each commit after +after+, including its diffs.
@@ -48,14 +39,17 @@ module Scm::Adapters
 		# This is designed to prevent excessive RAM usage when we
 		# encounter a massive repository.  Only a single commit is ever
 		# held in memory at once.
-		def each_commit(opts={})
-			after = opts[:after]
-			open_log_file(opts) do |io|
-				Scm::Parsers::BzrParser.parse(io) do |commit|
-					yield remove_directories(commit) if block_given? && commit.token != after
-				end
-			end
-		end
+    def each_commit(opts={})
+      after = opts[:after]
+      skip_commits = !!after # Don't emit any commits until the 'after' resume point passes
+
+      open_log_file(opts) do |io|
+        Scm::Parsers::BzrXmlParser.parse(io) do |commit|
+          yield remove_directories(commit) if block_given? && !skip_commits
+          skip_commits = false if commit.token == after
+        end
+      end
+    end
 
 		# Ohloh tracks only files, not directories. This function removes directories
 		# from the commit diffs.
@@ -81,7 +75,7 @@ module Scm::Adapters
 				if after == head_token # There are no new commits
 					# As a time optimization, just create an empty
 					# file rather than fetch a log we know will be empty.
-					File.open(log_filename, 'w') { }
+          File.open(log_filename, 'w') { |f| f.puts '<?xml version="1.0"?>' }
 				else
 					run "#{rev_list_command(opts)} -v > #{log_filename}"
 				end
@@ -95,10 +89,12 @@ module Scm::Adapters
 		  File.join('/tmp', (self.url).gsub(/\W/,'') + '.log')
 		end
 
+    # Uses xmllog command for output to be used by BzrXmlParser.
 		def rev_list_command(opts={})
 			after = opts[:after]
 			trunk_only = opts[:trunk_only] ? '--levels=1' : '--include-merges'
-			"cd '#{self.url}' && bzr log --long --show-id --forward #{trunk_only} -r #{to_rev_param(after)}.."
+			"cd '#{self.url}' && bzr xmllog --show-id --forward #{trunk_only} -r #{to_rev_param(after)}.."
 		end
-	end
+	
+  end
 end
