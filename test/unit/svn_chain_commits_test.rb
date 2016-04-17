@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Parsers
-	class SvnChainTest < Scm::Test
+module OhlohScm::Parsers
+	class SvnChainTest < OhlohScm::Test
 
 		def test_chained_commit_tokens
 			with_svn_chain_repository('svn_with_branching', '/trunk') do |svn|

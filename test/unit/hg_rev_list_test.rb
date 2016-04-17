@@ -1,13 +1,13 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Adapters
+module OhlohScm::Adapters
 	# Repository hg_walk has the following structure:
 	#
 	#      G -> H -> I
 	#     /      \    \
 	#    A -> B -> C -> D -> tip
 	#
-	class HgRevListTest < Scm::Test
+	class HgRevListTest < OhlohScm::Test
 
 		def test_rev_list
 			with_hg_repository('hg_walk') do |hg|

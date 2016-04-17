@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Adapters
-	class BzrHeadTest < Scm::Test
+module OhlohScm::Adapters
+	class BzrHeadTest < OhlohScm::Test
 
 		def test_head_and_parents
 			with_bzr_repository('bzr') do |bzr|

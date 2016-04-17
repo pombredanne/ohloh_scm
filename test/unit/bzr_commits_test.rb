@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Adapters
-	class BzrCommitsTest < Scm::Test
+module OhlohScm::Adapters
+	class BzrCommitsTest < OhlohScm::Test
 
 		def test_commit_count
 			with_bzr_repository('bzr') do |bzr|
@@ -63,7 +63,7 @@ module Scm::Adapters
 				assert_equal [
 					'test@example.com-20090206214301-s93cethy9atcqu9h',
 					'test@example.com-20090206214451-lzjngefdyw3vmgms',
-					'test@example.com-20090206214350-rqhdpz92l11eoq2t', # branch commit 
+					'test@example.com-20090206214350-rqhdpz92l11eoq2t', # branch commit
 					'test@example.com-20090206214515-21lkfj3dbocao5pr'  # merge commit
 				], bzr.commit_tokens(:trunk_only => false)
 			end
@@ -95,8 +95,8 @@ module Scm::Adapters
           'test@example.com-20110803170648-o0xcbni7lwp97azj',
           'test@example.com-20110803170818-v44umypquqg8migo'
         ], bzr.commit_tokens(:trunk_only => false)
-      end 
-    end 
+      end
+    end
 
     def test_nested_branches_commit_tokens_trunk_only_true
       with_bzr_repository('bzr_with_nested_branches') do |bzr|
@@ -109,15 +109,15 @@ module Scm::Adapters
           'obnox@samba.org-20090204004942-73rnw0izen42f154',
           'test@example.com-20110803170818-v44umypquqg8migo'
         ], bzr.commit_tokens(:trunk_only => true)
-      end 
-    end 
+      end
+    end
 
 		def test_commits_trunk_only_false
 			with_bzr_repository('bzr_with_branch') do |bzr|
 				assert_equal [
 					'test@example.com-20090206214301-s93cethy9atcqu9h',
 					'test@example.com-20090206214451-lzjngefdyw3vmgms',
-					'test@example.com-20090206214350-rqhdpz92l11eoq2t', # branch commit 
+					'test@example.com-20090206214350-rqhdpz92l11eoq2t', # branch commit
 					'test@example.com-20090206214515-21lkfj3dbocao5pr'  # merge commit
 				], bzr.commits(:trunk_only => false).map { |c| c.token }
 			end
@@ -163,8 +163,8 @@ module Scm::Adapters
           'test@example.com-20110803170648-o0xcbni7lwp97azj',
           'test@example.com-20110803170818-v44umypquqg8migo'
         ], bzr.commits(:trunk_only => false).map { |c| c.token }
-      end 
-    end 
+      end
+    end
 
     def test_nested_branches_commits_trunk_only_true
       with_bzr_repository('bzr_with_nested_branches') do |bzr|
@@ -177,8 +177,8 @@ module Scm::Adapters
           'obnox@samba.org-20090204004942-73rnw0izen42f154',
           'test@example.com-20110803170818-v44umypquqg8migo'
         ], bzr.commits(:trunk_only => true).map { |c| c.token }
-      end 
-    end 
+      end
+    end
 
 		def test_commits
 			with_bzr_repository('bzr') do |bzr|
@@ -345,7 +345,7 @@ module Scm::Adapters
         assert_equal 'Abhay Mujumdar', commits[0].committer_name
         assert_equal nil, commits[0].author_name
         assert_equal nil, commits[0].author_email
-        
+
         assert_equal 'Updated.', commits[1].message
         assert_equal 'Abhay Mujumdar', commits[1].committer_name
         assert_equal 'John Doe', commits[1].author_name
@@ -356,6 +356,16 @@ module Scm::Adapters
         assert_equal 'test', commits[2].committer_name
         assert_equal 'John Doe', commits[2].author_name
         assert_equal 'johndoe@example.com', commits[2].author_email
+      end
+    end
+
+    # Bzr converts invalid utf-8 characters into valid format before commit.
+    # So no utf-8 encoding issues are seen in ruby when dealing with Bzr.
+    def test_commits_encoding
+      with_bzr_repository('bzr_with_invalid_encoding') do |bzr|
+        assert_nothing_raised do
+          bzr.commits
+        end
       end
     end
 

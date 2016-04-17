@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Parsers
-	class SvnChainTest < Scm::Test
+module OhlohScm::Parsers
+	class SvnChainTest < OhlohScm::Test
 
 		def test_chain
 			with_svn_chain_repository('svn_with_branching', '/trunk') do |svn|
@@ -52,11 +52,16 @@ module Scm::Parsers
 		end
 
 		def test_parent_branch_name
-			svn = Scm::Adapters::SvnChainAdapter.new(:branch_name => "/trunk")
+			svn = OhlohScm::Adapters::SvnChainAdapter.new(:branch_name => "/trunk")
 
-			assert_equal "/branches/b", svn.parent_branch_name(Scm::Diff.new(:action => 'A',
+			assert_equal "/branches/b", svn.parent_branch_name(OhlohScm::Diff.new(:action => 'A',
 					:path => "/trunk", :from_revision => 1, :from_path => "/branches/b"))
 		end
 
+    def test_next_revision_xml_valid_encoding
+      with_invalid_encoded_svn_repository do |svn|
+        assert_equal true, svn.next_revision_xml(0).valid_encoding?
+      end
+    end
 	end
 end

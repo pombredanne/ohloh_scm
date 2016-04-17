@@ -1,13 +1,13 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Adapters
+module OhlohScm::Adapters
 	# Repository git_walk has the following structure:
 	#
 	#      G -> H -> I -> J -> development
 	#     /      \    \
 	#    A -> B -> C -> D -> master
 	#
-	class GitRevListTest < Scm::Test
+	class GitRevListTest < OhlohScm::Test
 
 		def test_rev_list
 			with_git_repository('git_walk') do |git|

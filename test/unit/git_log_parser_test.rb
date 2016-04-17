@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 require 'date'
 
-module Scm::Parsers
-	class GitStyledParserTest < Scm::Test
+module OhlohScm::Parsers
+	class GitStyledParserTest < OhlohScm::Test
 
 		def test_basic
 			commits = []
@@ -187,7 +187,7 @@ __END_COMMENT__
 
 __BEGIN_COMMIT__
 Commit: fa3ee9d4cefc2db81adadf36da9cacbe92ce96f1
-Author: 
+Author:
 AuthorEmail: mickeyl@openembedded.org
 Date: Wed, 11 Jun 2008 00:37:06 +0000
 __BEGIN_COMMENT__

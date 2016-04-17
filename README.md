@@ -49,6 +49,18 @@ hg 1.1.2
 If you are using CVS instead of CVSNT, you can potentially try creating
 a shell alias or symlink mapping 'cvsnt' to 'cvs'.
 
+Ohloh SCM uses [posix-spawn](https://github.com/rtomayko/posix-spawn) to
+execute commands so ensure *posix-spawn* gem is installed
+
+``gem install posix-spawn``
+
+
+## Usage with Bundler
+
+```
+gem 'ohloh_scm', git: 'https://github.com/blackducksw/ohloh_scm/', require: 'scm'
+gem 'posix-spawn'
+```
 ## Running
 
 Ensure that cvsnt, svn, svnadmin, svnsync, git, and hg are all on your path. You'll also need to ensure that you have the xmloutput plugin installed for bazaar.
@@ -83,7 +95,7 @@ Then you can run the unit tests:
 
     $ rake
 
-You can load the library into your own Ruby application by requiring lib/scm.rb.
+You can load the library into your own Ruby application by requiring lib/ohloh_scm.rb.
 
 # Functionality
 

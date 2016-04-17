@@ -1,11 +1,11 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Adapters
-	class BzrPullTest < Scm::Test
+module OhlohScm::Adapters
+	class BzrPullTest < OhlohScm::Test
 
 		def test_pull
 			with_bzr_repository('bzr') do |src|
-				Scm::ScratchDir.new do |dest_dir|
+				OhlohScm::ScratchDir.new do |dest_dir|
 
 					dest = BzrAdapter.new(:url => dest_dir).normalize
 					assert !dest.exist?

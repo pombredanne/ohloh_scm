@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Parsers
-	class GitParserTest < Scm::Test
+module OhlohScm::Parsers
+	class GitParserTest < OhlohScm::Test
 
 		def test_empty_array
 			assert_equal([], GitParser.parse(''))

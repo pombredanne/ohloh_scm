@@ -1,11 +1,11 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Adapters
-	class SvnMiscTest < Scm::Test
+module OhlohScm::Adapters
+	class SvnMiscTest < OhlohScm::Test
 
 		def test_export
 			with_svn_repository('svn') do |svn|
-				Scm::ScratchDir.new do |dir|
+				OhlohScm::ScratchDir.new do |dir|
 					svn.export(dir)
 					assert_equal ['.','..','branches','tags','trunk'], Dir.entries(dir).sort
 				end

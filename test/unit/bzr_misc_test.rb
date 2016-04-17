@@ -1,7 +1,8 @@
-require File.dirname(__FILE__) + '/../test_helper'
+# encoding: utf-8
+require_relative '../test_helper'
 
-module Scm::Adapters
-	class BzrMiscTest < Scm::Test
+module OhlohScm::Adapters
+	class BzrMiscTest < OhlohScm::Test
 
 		def test_exist
 			save_bzr = nil
@@ -25,7 +26,7 @@ module Scm::Adapters
 
 		def test_export
 			with_bzr_repository('bzr') do |bzr|
-				Scm::ScratchDir.new do |dir|
+				OhlohScm::ScratchDir.new do |dir|
 					bzr.export(dir)
 					assert_equal ['.', '..', 'Cédric.txt', 'file1.txt', 'file3.txt', 'file4.txt', 'file5.txt'], Dir.entries(dir).sort
 				end

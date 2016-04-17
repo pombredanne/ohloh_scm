@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require_relative '../test_helper'
 
-module Scm::Adapters
-	class AbstractAdapterTest < Scm::Test
+module OhlohScm::Adapters
+	class AbstractAdapterTest < OhlohScm::Test
 		def test_simple_validation
 			scm = AbstractAdapter.new()
 			assert !scm.valid?
@@ -74,7 +74,7 @@ module Scm::Adapters
       stdout = AbstractAdapter.run(cmd)
       assert_equal "Hello World\n", stdout
     end
-    
+
     def test_shellout_with_stderr
       cmd = %q( ruby -e"  t = 'Hello World'; STDOUT.puts t; STDERR.puts t  " )
       stdout, stderr, status = AbstractAdapter.run_with_err(cmd)
@@ -82,7 +82,7 @@ module Scm::Adapters
       assert_equal "Hello World\n", stdout
       assert_equal "Hello World\n", stderr
     end
-    
+
     def test_shellout_large_output
       cat = 'ruby -e"  puts Array.new(65536){ 42 }  "'
       stdout = AbstractAdapter.run(cat)
@@ -91,9 +91,15 @@ module Scm::Adapters
 
     def test_shellout_error
       cmd = "false"
-      assert_raise RuntimeError do 
+      assert_raise RuntimeError do
         stdout = AbstractAdapter.run(cmd)
       end
+    end
+
+    def test_string_encoder_must_return_path_to_script
+      string_encoder_path = File.expand_path('../../../bin/string_encoder', __FILE__)
+
+      assert_equal string_encoder_path, AbstractAdapter.new.string_encoder
     end
 
 	end
